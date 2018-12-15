@@ -6,7 +6,6 @@ const {
   CopyPlugin,
   JSONPlugin,
 } = require('fuse-box');
-const express = require('express');
 const { spawn } = require('child_process');
 
 const production = process.env.NODE_ENV === 'dev' ? false : true;
@@ -71,7 +70,7 @@ const getCopyPlugin = () => {
 const mainProcess = () => {
   const fuse = FuseBox.init(getConfig('server', 'main'));
 
-  const app = fuse.bundle('main').instructions('> [main/index.ts]');
+  const app = fuse.bundle('main').instructions(`> [main/index.ts]`);
 
   if (!production) {
     app.watch();
@@ -109,8 +108,8 @@ const renderer = () => {
   fuse.run();
 };
 
-const applets = () => {
-  const cfg = getRendererConfig('browser@es6');
+const applet = () => {
+  const cfg = getRendererConfig('browser@es6', 'newtab');
 
   cfg.plugins.push(getWebIndexPlugin('newtab'));
   cfg.plugins.push(JSONPlugin());
@@ -133,20 +132,13 @@ const applets = () => {
   fuse.run();
 };
 
-const preloads = () => {
-  const fuse = FuseBox.init(getRendererConfig('electron', 'webview-preload'));
+const preload = name => {
+  const fuse = FuseBox.init(getRendererConfig('electron', name));
 
-  const webviewPreload = fuse
-    .bundle('webview-preload')
-    .instructions('> preloads/webview-preload.ts');
-
-  const backgroundPagePreload = fuse
-    .bundle('background-page-preload')
-    .instructions('> preloads/background-page-preload.ts');
+  const bundle = fuse.bundle(name).instructions(`> [preloads/${name}.ts]`);
 
   if (!production) {
-    webviewPreload.watch();
-    backgroundPagePreload.watch();
+    bundle.watch();
     return;
   }
 
@@ -154,6 +146,7 @@ const preloads = () => {
 };
 
 renderer();
-preloads();
+preload('webview-preload');
+preload('background-page-preload');
 mainProcess();
-applets();
+applet();

@@ -1,4 +1,4 @@
-import { webContents, BrowserWindow, ipcMain } from 'electron';
+import { webContents, BrowserWindow, ipcMain, app } from 'electron';
 import * as fs from 'fs';
 import { format } from 'url';
 import { resolve } from 'path';
@@ -47,7 +47,7 @@ export const startBackgroundPage = async (manifest: Manifest) => {
       partition: 'persist:wexond_extension',
       isBackgroundPage: true,
       commandLineSwitches: ['--background-page'],
-      preload: resolve(__dirname, 'build/background-page-preload.js'),
+      preload: resolve(app.getAppPath(), 'build/background-page-preload.js'),
       webPreferences: {
         webSecurity: false,
       },
@@ -91,11 +91,11 @@ export const loadExtensions = async (window: BrowserWindow) => {
           await readFile(manifestPath, 'utf8'),
         );
 
-        manifest.extensionId = dir;
+        const id = dir.toLowerCase();
+
+        manifest.extensionId = id;
         manifest.srcDirectory = extensionPath;
         manifest.default_locale = manifest.default_locale;
-
-        const id = dir;
 
         if (global.extensions[id]) {
           return;
