@@ -45,7 +45,7 @@ const getConfig = (target, name) => {
 
 const getRendererConfig = (target, name) => {
   const cfg = Object.assign({}, getConfig(target, name), {
-    sourceMaps: true,
+    sourceMaps: !production,
   });
 
   return cfg;
